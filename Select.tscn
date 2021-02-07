@@ -1,0 +1,92 @@
+[gd_scene load_steps=2 format=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node2D
+
+var level_scene_path = \"res://Level.tscn\"
+var doDeletion = false
+
+func _ready():
+	$Load.connect(\"pressed\", self, \"_on_load\")
+	$New.connect(\"pressed\", self, \"_on_new\")
+	$Delete.connect(\"pressed\", self, \"_on_delete\")
+	$FileDial.connect(\"file_selected\", self, \"_file_choosed\")
+	$SaveFileDail.connect(\"file_selected\", self, \"_file_choosed\")
+
+func _on_load():
+	doDeletion = false
+	$FileDial.popup()
+
+func _on_new():
+	doDeletion = false
+	$SaveFileDail.popup()
+
+func _on_delete():
+	doDeletion = true
+	$FileDial.popup()
+
+func _file_choosed(file):
+	if doDeletion:
+		var dir = Directory.new()
+		dir.remove(file)
+		doDeletion = false
+		return
+	G.loaded_matrix_path = file
+	get_tree().change_scene(level_scene_path)
+"
+
+[node name="Select" type="Node2D"]
+script = SubResource( 1 )
+
+[node name="New" type="Button" parent="."]
+margin_left = 202.67
+margin_top = 197.33
+margin_right = 802.67
+margin_bottom = 297.33
+text = "New"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Load" type="Button" parent="."]
+margin_left = 200.0
+margin_top = 400.0
+margin_right = 800.0
+margin_bottom = 500.0
+text = "Load"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Delete" type="Button" parent="."]
+margin_left = 200.794
+margin_top = 520.0
+margin_right = 800.794
+margin_bottom = 600.0
+text = "Delete"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="FileDial" type="FileDialog" parent="."]
+margin_left = 112.671
+margin_top = 86.314
+margin_right = 931.671
+margin_bottom = 600.314
+window_title = "Open a File"
+mode = 0
+access = 1
+current_dir = "user://"
+current_path = "user://"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SaveFileDail" type="FileDialog" parent="."]
+margin_left = 92.0
+margin_top = 104.0
+margin_right = 923.0
+margin_bottom = 617.0
+access = 1
+current_dir = "user://"
+current_path = "user://"
