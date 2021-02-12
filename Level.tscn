@@ -17,15 +17,15 @@ var clickLockCount = 10
 # Godot handlers
 # =========================
 func _physics_process(delta):
-	cursor_show_frame()
+	Cursors.cursor_show_frame(self)
 	# Mouse buttons
 	# ------------------
 	if clickLockCount < 1:
 		if Input.is_mouse_button_pressed(1):
-			var tpos = cursor_tile_pos()
+			var tpos = Cursors.cursor_tile_pos(self)
 			_put_elem(tpos.x, tpos.y)
 		elif Input.is_mouse_button_pressed(2):
-			var tpos = cursor_tile_pos()
+			var tpos = Cursors.cursor_tile_pos(self)
 			_clear_elem(tpos.x, tpos.y)
 	# Keyboard keys
 	# ------------------
@@ -65,19 +65,6 @@ func _ready():
 	if doNewMatrix:
 		matrix = Matrix.new(tile_matrix_size.width, tile_matrix_size.height)
 	_draw_matrix()
-
-# =========================
-# Cursor util functions
-# =========================
-func cursor_tile_pos():
-	var mpos = get_global_mouse_position()
-	var x = floor(mpos.x / tile_size)
-	var y = floor(mpos.y / tile_size)
-	return Vector2(x, y)
-
-func cursor_show_frame():
-	var tpos = cursor_tile_pos()
-	$CursorFrame.position = tpos * tile_size
 
 # =========================
 # Set / Get elem on matrix
@@ -330,13 +317,10 @@ func _on_save_level():
 func save_matrix():
 	if G.loaded_matrix_path == null:
 		G.loaded_matrix_path = \"user://current\"
-	var w = matrix.width
-	var h = matrix.height
-	var d = matrix.matrix
 	var data = {}
-	data['width'] = w
-	data['height'] = h
-	data['data'] = d
+	data['width'] = matrix.width
+	data['height'] = matrix.height
+	data['data'] = matrix.matrix
 	data['tick_count'] = _tick_count
 	G.writeFileAsObject(G.loaded_matrix_path, data)
 
