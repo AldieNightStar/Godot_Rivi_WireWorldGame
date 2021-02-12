@@ -12,7 +12,12 @@ _global_script_classes=[ {
 "base": "Node",
 "class": "Cursors",
 "language": "GDScript",
-"path": "res://funcs/cursors.gd"
+"path": "res://scripts/cursors.gd"
+}, {
+"base": "Node",
+"class": "Inventory",
+"language": "GDScript",
+"path": "res://scripts/inventory.gd"
 }, {
 "base": "Node",
 "class": "Matrix",
@@ -22,7 +27,12 @@ _global_script_classes=[ {
 "base": "Node",
 "class": "Positions",
 "language": "GDScript",
-"path": "res://funcs/positions.gd"
+"path": "res://scripts/positions.gd"
+}, {
+"base": "Node",
+"class": "Sprites",
+"language": "GDScript",
+"path": "res://scripts/sprites.gd"
 }, {
 "base": "Node",
 "class": "Util",
@@ -31,8 +41,10 @@ _global_script_classes=[ {
 } ]
 _global_script_class_icons={
 "Cursors": "",
+"Inventory": "",
 "Matrix": "",
 "Positions": "",
+"Sprites": "",
 "Util": ""
 }
 

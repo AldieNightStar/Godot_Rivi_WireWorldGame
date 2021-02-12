@@ -12,6 +12,7 @@ const tile_size = 20
 var tile_matrix_size = Util.Size.new(50, 45)
 var matrix
 var clickLockCount = 10
+var inventory = Inventory.new()
 
 # =========================
 # Godot handlers
@@ -41,7 +42,7 @@ func _physics_process(delta):
 		
 
 func _ready():
-	show_curr_item_elem()
+	inventory.show_curr_item_elem(self)
 	_timing_speed(2)
 	var doNewMatrix = true
 	
@@ -70,7 +71,7 @@ func _ready():
 # Set / Get elem on matrix
 # =========================
 func _put_elem(x, y):
-	var elem = inv_item_get()
+	var elem = inventory.item_get()
 	matrix.set_val(x, y, elem)
 	_draw_matrix()
 	
@@ -90,15 +91,11 @@ func _input(event):
 			get_tree().change_scene(\"res://Select.tscn\")
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == 4: # SCROLL UP
-			inv_item_prev()
-			show_curr_item_elem()
+			inventory.item_prev()
+			inventory.show_curr_item_elem(self)
 		elif event.button_index == 5: # SCROLL DOWN
-			inv_item_next()
-			show_curr_item_elem()
-
-func _spr_set_tile(x, y, val):
-	val = _get_spr_number_of(val)
-	var tex = load(\"res://assets/\" + str(val) + \".png\")
+			inventory.item_next()
+			inventory.show_curr_item_elem(self)
 
 # =========================
 # Graphics util functions
@@ -106,51 +103,8 @@ func _spr_set_tile(x, y, val):
 func _draw_matrix():
 	for y in range(matrix.height):
 		for x in range(matrix.width):
-			var elem = _get_spr_number_of(matrix.get_val(x, y)) - 1
+			var elem = Sprites.number_of(matrix.get_val(x, y)) - 1
 			$TileMap.set_cell(x, y, elem)
-
-# Element_constant to sprite_number converter
-func _get_spr_number_of(elem):
-	if elem == Matrix.EL_WIRE:
-		return 1 # Wire sprite
-	elif elem == Matrix.EL_WIRE_ACTIVATED:
-		return 2 # Wire activated sprite
-	elif elem in [Matrix.EL_WIRE_TAIL, Matrix.EL_WIRE_TAIL_LOW]:
-		return 3 # Tail sprite
-	elif elem == Matrix.EL_WIRE_GUN:
-		return 4 # Wire gun sprite
-	elif elem in [Matrix.EL_WIRE_BULLET_DOWN, Matrix.EL_WIRE_BULLET_LEFT, Matrix.EL_WIRE_BULLET_RIGHT, Matrix.EL_WIRE_BULLET_UP]:
-		return 5 # Wire bullet sprite
-	elif elem == Matrix.EL_WIRE_BLOCKER:
-		return 6
-	elif elem == Matrix.EL_WIRE_BLOCKER_BLOCK:
-		return 7
-	elif elem == Matrix.EL_WIRE_BUTTERY:
-		return 8 # Buttery sprite
-	else:
-		return 0 # Nothing
-
-# =========================
-# Inventory
-# =========================
-var inventory = [Matrix.EL_WIRE, Matrix.EL_WIRE_ACTIVATED, Matrix.EL_WIRE_GUN, Matrix.EL_WIRE_BLOCKER, Matrix.EL_WIRE_BUTTERY]
-var inv_item = 0
-
-func inv_item_prev():
-	inv_item -= 1
-	if inv_item < 0: inv_item = 0
-
-func inv_item_next():
-	inv_item += 1
-	if inv_item >= inventory.size(): inv_item = inventory.size() - 1
-
-func inv_item_get():
-	return inventory[inv_item]
-
-func show_curr_item_elem():
-	var elem = inv_item_get()
-	var spr  = _get_spr_number_of(elem)
-	$TileMap.set_cell(50, 0, spr - 1)
 
 # =========================
 # Matrix logic updater
