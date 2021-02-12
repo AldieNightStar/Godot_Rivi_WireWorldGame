@@ -30,11 +30,11 @@ func _physics_process(delta):
 	# Keyboard keys
 	# ------------------
 	if Input.is_key_pressed(KEY_1):
-		$Timer.wait_time = 0.2
+		_timing_speed(1)
 	elif Input.is_key_pressed(KEY_2):
-		$Timer.wait_time = 0.05
+		_timing_speed(2)
 	elif Input.is_key_pressed(KEY_3):
-		$Timer.wait_time = 0.01
+		_timing_speed(3)
 	elif Input.is_key_pressed(KEY_DELETE): # Clear matrix
 		matrix.clear()
 		_draw_matrix()
@@ -42,7 +42,7 @@ func _physics_process(delta):
 
 func _ready():
 	show_curr_item_elem()
-	
+	_timing_speed(2)
 	var doNewMatrix = true
 	
 	# Load matrix
@@ -51,13 +51,14 @@ func _ready():
 		var lmatrix = G.readFileAsObject(G.loaded_matrix_path)
 		if lmatrix == null:
 			doNewMatrix = true
-		elif not (lmatrix.has(\"width\") and lmatrix.has(\"height\") and lmatrix.has(\"data\")):
+		elif not (lmatrix.has(\"width\") and lmatrix.has(\"height\") and lmatrix.has(\"data\") and lmatrix.has(\"tick_count\")):
 			doNewMatrix = true
 			return
 		else:
 			var w = lmatrix['width']
 			var h = lmatrix['height']
 			var d = lmatrix['data']
+			_tick_count = lmatrix['tick_count']
 			matrix = Matrix.new(w, h)
 			matrix.matrix = d
 			doNewMatrix = false
@@ -137,13 +138,15 @@ func _get_spr_number_of(elem):
 		return 6
 	elif elem == Matrix.EL_WIRE_BLOCKER_BLOCK:
 		return 7
+	elif elem == Matrix.EL_WIRE_BUTTERY:
+		return 8 # Buttery sprite
 	else:
 		return 0 # Nothing
 
 # =========================
 # Inventory
 # =========================
-var inventory = [Matrix.EL_WIRE, Matrix.EL_WIRE_ACTIVATED, Matrix.EL_WIRE_GUN, Matrix.EL_WIRE_BLOCKER]
+var inventory = [Matrix.EL_WIRE, Matrix.EL_WIRE_ACTIVATED, Matrix.EL_WIRE_GUN, Matrix.EL_WIRE_BLOCKER, Matrix.EL_WIRE_BUTTERY]
 var inv_item = 0
 
 func inv_item_prev():
@@ -167,14 +170,27 @@ func show_curr_item_elem():
 # =========================
 var future_matrix_ops = [] # Util.Op[]
 var updater_paused = false
+var _tick_count = 0
+var _tick_max_count = 5
 
 func updateTheMatrix():
 	if clickLockCount > 0:
 		clickLockCount -= 1
 	if updater_paused: return
+	# --------------------
+	# Tick updater
+	# --------------------
+	if _tick_count == 0:
+		_on_tick()
+	_tick_count += 1
+	if _tick_count > _tick_max_count:
+		_tick_count = 0
+	# --------------------
 	for y in range(matrix.height):
 		for x in range(matrix.width):
 			var el = matrix.get_val(x, y)
+			if _is_ticking_elem(el):
+				_ticks_set_pos([x, y])
 			if el == Matrix.EL_WIRE:
 				var nwired = __matrix_check_wired(x, y)
 				if nwired != 0 and (nwired == 1 or nwired == 2):
@@ -321,7 +337,41 @@ func save_matrix():
 	data['width'] = w
 	data['height'] = h
 	data['data'] = d
+	data['tick_count'] = _tick_count
 	G.writeFileAsObject(G.loaded_matrix_path, data)
+
+# =============================
+# Ticks
+# =============================
+var tick_elem_poses = {} # key: [x, y]    val: int element
+var ticks = 0
+
+func _ticks_set_pos(pos):
+	tick_elem_poses[pos] = true
+
+func _timing_execute_ops():
+	if len(tick_elem_poses) > 0:
+		for pos in tick_elem_poses.keys():
+			__tick_elem(pos[0], pos[1])
+		tick_elem_poses.clear()
+
+func _is_ticking_elem(elem):
+	if elem in [Matrix.EL_WIRE_BUTTERY]:
+		return true
+	return false
+
+func _timing_speed(n: int):
+	$Timer.wait_time = 1 / float(pow(5, n))
+
+func _on_tick():
+	ticks += 1
+	_timing_execute_ops()
+	if ticks % 20 == 0:
+		_on_save_level()
+
+func __tick_elem(x, y):
+	for p in Positions.neighbour_positions8(x, y):
+		__update_matrix_set_activated(p[0], p[1])
 "
 
 [sub_resource type="TileSet" id=2]
@@ -423,6 +473,20 @@ func save_matrix():
 6/shape_one_way_margin = 0.0
 6/shapes = [  ]
 6/z_index = 0
+7/name = "Elems.png 7"
+7/texture = ExtResource( 2 )
+7/tex_offset = Vector2( 0, 0 )
+7/modulate = Color( 1, 1, 1, 1 )
+7/region = Rect2( 5, 10, 5, 5 )
+7/tile_mode = 0
+7/occluder_offset = Vector2( 0, 0 )
+7/navigation_offset = Vector2( 0, 0 )
+7/shape_offset = Vector2( 0, 0 )
+7/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+7/shape_one_way = false
+7/shape_one_way_margin = 0.0
+7/shapes = [  ]
+7/z_index = 0
 
 [node name="Level" type="Node2D"]
 script = SubResource( 1 )
@@ -448,9 +512,4 @@ modulate = Color( 1, 1, 1, 0.0823529 )
 position = Vector2( 535.405, 339.169 )
 scale = Vector2( 41.5866, 36.238 )
 texture = ExtResource( 3 )
-
-[node name="SaveTimer" type="Timer" parent="."]
-wait_time = 3.0
-autostart = true
 [connection signal="timeout" from="Timer" to="." method="updateTheMatrix"]
-[connection signal="timeout" from="SaveTimer" to="." method="_on_save_level"]

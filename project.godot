@@ -15,12 +15,18 @@ _global_script_classes=[ {
 "path": "res://matrix.gd"
 }, {
 "base": "Node",
+"class": "Positions",
+"language": "GDScript",
+"path": "res://funcs/positions.gd"
+}, {
+"base": "Node",
 "class": "Util",
 "language": "GDScript",
 "path": "res://util.gd"
 } ]
 _global_script_class_icons={
 "Matrix": "",
+"Positions": "",
 "Util": ""
 }
 

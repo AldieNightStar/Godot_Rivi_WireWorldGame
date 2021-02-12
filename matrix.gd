@@ -17,6 +17,8 @@ const EL_WIRE_TAIL_LOW = 9
 const EL_WIRE_BLOCKER = 10
 const EL_WIRE_BLOCKER_BLOCK = 11
 
+const EL_WIRE_BUTTERY = 12
+
 var width
 var height
 var matrix
